@@ -1,23 +1,43 @@
 import streamlit as st
+import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
+
+# secret_key = secrets.token_hex(16)
+# print(secret_key)
 
 st.set_page_config(
-    page_title="FullStackGPT Home",
+    page_title="LLM Collection for Office",
     page_icon="💀",
 )
 
-st.markdown(
-    """
-# Hello!
-            
-Welcome to my FullstackGPT Portfolio!
-            
-Here are the apps I made:
-            
-- [x] [DocumentGPT](/DocumentGPT)
-- [ ] [PrivateGPT](/PrivateGPT)
-- [ ] [QuizGPT](/QuizGPT)
-- [ ] [SiteGPT](/SiteGPT)
-- [ ] [MeetingGPT](/MeetingGPT)
-- [ ] [InvestorGPT](/InvestorGPT)
-"""
+with open("./config.ymal") as file:
+    config = yaml.load(file, Loader=SafeLoader)
+
+authenticator = stauth.Authenticate(
+    config["credentials"],
+    config["cookie"]["name"],
+    config["cookie"]["key"],
+    config["cookie"]["expiry_days"],
+    config["preauthorized"],
 )
+
+name, authentication_status, username = authenticator.login("Login", "main")
+
+if "authentication_status" not in st.session_state:
+    st.session_state["authentication_status"] = authentication_status
+
+if authentication_status:
+    authenticator.logout("Logout", "main")
+    st.write(f"Welcome *{name}*")
+    st.markdown(
+        """
+# 1. ChatGPT 3.5
+# 2. ChatGPT 4
+# 3. Gemini Pro
+    """
+    )
+elif authentication_status == False:
+    st.error("Username/password is incorrect")
+elif authentication_status == None:
+    st.warning("Please enter your username and password")
