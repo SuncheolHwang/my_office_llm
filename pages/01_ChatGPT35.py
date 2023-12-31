@@ -24,8 +24,8 @@ class ChatCallbackHandler(BaseCallbackHandler):
         self.message_box.markdown(self.message)
 
 
-if "messages" not in st.session_state:
-    st.session_state["messages"] = []
+if "gpt3_messages" not in st.session_state:
+    st.session_state["gpt3_messages"] = []
 
 llm = ChatOpenAI(
     temperature=0.1,
@@ -36,7 +36,7 @@ llm = ChatOpenAI(
 
 
 def save_messages(message, role):
-    st.session_state["messages"].append(
+    st.session_state["gpt3_messages"].append(
         {
             "message": message,
             "role": role,
@@ -52,16 +52,22 @@ def send_message(message, role, save=True):
 
 
 def paint_history():
-    for message in st.session_state["messages"]:
+    for message in st.session_state["gpt3_messages"]:
         send_message(message["message"], message["role"], save=False)
 
+
+with st.sidebar:
+    prompt_text = st.text_area(
+        "Prompt",
+        """You are an engineering expert. explain the question in detail.""",
+    )
 
 prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            """
-            You are an engineering expert. explain the question in detail.
+            f"""
+            {prompt_text}
             """,
         ),
         ("human", "{question}"),

@@ -8,8 +8,8 @@ st.set_page_config(
 )
 
 
-if "messages" not in st.session_state:
-    st.session_state["messages"] = []
+if "gemini_messages" not in st.session_state:
+    st.session_state["gemini_messages"] = []
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-pro",
@@ -18,7 +18,7 @@ llm = ChatGoogleGenerativeAI(
 
 
 def save_messages(message, role):
-    st.session_state["messages"].append(
+    st.session_state["gemini_messages"].append(
         {
             "message": message,
             "role": role,
@@ -34,7 +34,7 @@ def send_message(message, role, save=True):
 
 
 def paint_history():
-    for message in st.session_state["messages"]:
+    for message in st.session_state["gemini_messages"]:
         send_message(message["message"], message["role"], save=False)
 
 
@@ -55,6 +55,7 @@ paint_history()
 authentication_status = st.session_state["authentication_status"]
 if authentication_status:
     message = st.chat_input("Ask anything about something...")
+
     if message:
         send_message(message, "human")
         with st.chat_message("ai"):
