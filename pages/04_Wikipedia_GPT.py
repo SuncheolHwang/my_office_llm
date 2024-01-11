@@ -37,6 +37,7 @@ llm = ChatOpenAI(
     callbacks=[ChatCallbackHandler()],
 )
 
+
 prompt = ChatPromptTemplate.from_messages(
     [
         (

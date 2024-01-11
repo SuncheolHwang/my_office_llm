@@ -1,27 +1,33 @@
 import streamlit as st
-from langchain.prompts import ChatPromptTemplate
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.chat_models import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
+from langchain.memory import ConversationTokenBufferMemory
 
 st.set_page_config(
     page_title="ChatGPT3.5",
     page_icon="📃",
 )
 
+callback = False
+
 
 class ChatCallbackHandler(BaseCallbackHandler):
     message = ""
 
     def on_llm_start(self, *args, **kwargs):
-        self.message_box = st.empty()
+        if callback:
+            self.message_box = st.empty()
 
     def on_llm_end(self, *args, **kwargs):
-        save_messages(self.message, "ai")
+        if callback:
+            save_messages(self.message, "ai")
 
     def on_llm_new_token(self, token, *args, **kwargs):
-        self.message += token
-        self.message_box.markdown(self.message)
+        if callback:
+            self.message += token
+            self.message_box.markdown(self.message)
 
 
 if "gpt3_messages" not in st.session_state:
@@ -33,6 +39,22 @@ llm = ChatOpenAI(
     streaming=True,
     callbacks=[ChatCallbackHandler()],
 )
+
+memory = ConversationTokenBufferMemory(
+    llm=llm,
+    max_token_limit=1000,
+    return_messages=True,
+)
+
+if "chat_summary" not in st.session_state:
+    st.session_state["chat_summary"] = []
+else:
+    callback = False
+    for chat_list in st.session_state["chat_summary"]:
+        memory.save_context(
+            {"input": chat_list["question"]},
+            {"output": chat_list["answer"]},
+        )
 
 
 def save_messages(message, role):
@@ -59,7 +81,7 @@ def paint_history():
 with st.sidebar:
     prompt_text = st.text_area(
         "Prompt",
-        """You are an engineering expert. explain the question in detail.""",
+        """You are an engineering expert. explain your question in detail in Korean. And provide additional definitions for technical terms.""",
     )
 
 prompt = ChatPromptTemplate.from_messages(
@@ -70,9 +92,31 @@ prompt = ChatPromptTemplate.from_messages(
             {prompt_text}
             """,
         ),
+        MessagesPlaceholder(variable_name="history"),
         ("human", "{question}"),
     ]
 )
+
+
+def load_memory(_):
+    return memory.load_memory_variables({})["history"]
+
+
+def save_context(question, result):
+    st.session_state["chat_summary"].append(
+        {
+            "question": question,
+            "answer": result,
+        }
+    )
+
+
+def invoke_chain(question):
+    result = chain.invoke(
+        {"question": question},
+    )
+    save_context(message, result.content)
+
 
 st.title("ChatGPT3.5 Chatbot")
 
@@ -93,12 +137,8 @@ if authentication_status:
     message = st.chat_input("Ask anything about something...")
     if message:
         send_message(message, "human")
-        chain = (
-            {
-                "question": RunnablePassthrough(),
-            }
-            | prompt
-            | llm
-        )
+        chain = RunnablePassthrough.assign(history=load_memory) | prompt | llm
+
         with st.chat_message("ai"):
-            chain.invoke(message)
+            callback = True
+            invoke_chain(message)

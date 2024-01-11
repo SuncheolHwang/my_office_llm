@@ -1,6 +1,6 @@
 import streamlit as st
 from langchain_google_genai import ChatGoogleGenerativeAI
-
+from langchain.memory import ConversationTokenBufferMemory
 
 st.set_page_config(
     page_title="Gemini-Pro",
@@ -15,6 +15,21 @@ llm = ChatGoogleGenerativeAI(
     model="gemini-pro",
     convert_system_message_to_human=True,
 )
+
+memory = ConversationTokenBufferMemory(
+    llm=llm,
+    max_token_limit=300,
+    return_messages=True,
+)
+
+if "chat_summary" not in st.session_state:
+    st.session_state["chat_summary"] = []
+else:
+    for chat_list in st.session_state["chat_summary"]:
+        memory.save_context(
+            {"input": chat_list["question"]},
+            {"output": chat_list["answer"]},
+        )
 
 
 def save_messages(message, role):
