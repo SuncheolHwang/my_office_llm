@@ -1,0 +1,15 @@
+Introduction
+If you’re looking to install LLaMA 2, the next generation of Meta’s open-source large language model, you’ve come to the right place. LLaMA 2 is making significant strides in the field of Artificial Intelligence (AI), revolutionizing various fields, from customer service to content creation.
+
+This model, available for free for research and commercial use, has been trained on 2 trillion tokens and boasts double the context length of its predecessor, LLaMA 1.
+
+Its fine-tuned models have been trained on over 1 million human annotations, making it a powerful tool for various AI applications.
+
+This guide will walk you through the process of installing LLaMA 2 locally, providing a step-by-step approach to help you set up and start using this powerful AI model on your own machine.
+
+If you’re interested in exploring more about AI models, you might find our posts on ChatGPT-4 Unleashed and How to Install SuperAGI useful.
+
+Prerequisites
+Before we install LLaMA 2, ensure that you have Conda installed on your system. We will be using Conda to create a new environment for our installation. We will also be using Text Generation Web UI for the interface for this model. You can follow our instructions to install conda from our GPT-Engineer guide.
+
+Once Conda is installed, open a Conda terminal and continue following the guide.

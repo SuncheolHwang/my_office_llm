@@ -46,11 +46,11 @@ memory = ConversationTokenBufferMemory(
     return_messages=True,
 )
 
-if "chat_summary" not in st.session_state:
-    st.session_state["chat_summary"] = []
+if "gpt3_chat_summary" not in st.session_state:
+    st.session_state["gpt3_chat_summary"] = []
 else:
     callback = False
-    for chat_list in st.session_state["chat_summary"]:
+    for chat_list in st.session_state["gpt3_chat_summary"]:
         memory.save_context(
             {"input": chat_list["question"]},
             {"output": chat_list["answer"]},
@@ -81,7 +81,7 @@ def paint_history():
 with st.sidebar:
     prompt_text = st.text_area(
         "Prompt",
-        """You are an engineering expert. explain your question in detail in Korean. And provide additional definitions for technical terms.""",
+        """You are an engineering expert. explain my question in detail in Korean. And provide additional definitions for technical terms.""",
     )
 
 prompt = ChatPromptTemplate.from_messages(
@@ -103,7 +103,7 @@ def load_memory(_):
 
 
 def save_context(question, result):
-    st.session_state["chat_summary"].append(
+    st.session_state["gpt3_chat_summary"].append(
         {
             "question": question,
             "answer": result,

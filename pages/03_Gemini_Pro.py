@@ -1,6 +1,7 @@
 import streamlit as st
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.memory import ConversationTokenBufferMemory
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain.memory import ConversationBufferWindowMemory
 
 st.set_page_config(
     page_title="Gemini-Pro",
@@ -16,16 +17,16 @@ llm = ChatGoogleGenerativeAI(
     convert_system_message_to_human=True,
 )
 
-memory = ConversationTokenBufferMemory(
+memory = ConversationBufferWindowMemory(
     llm=llm,
-    max_token_limit=300,
+    k=2,
     return_messages=True,
 )
 
-if "chat_summary" not in st.session_state:
-    st.session_state["chat_summary"] = []
+if "gemini_chat_summary" not in st.session_state:
+    st.session_state["gemini_chat_summary"] = []
 else:
-    for chat_list in st.session_state["chat_summary"]:
+    for chat_list in st.session_state["gemini_chat_summary"]:
         memory.save_context(
             {"input": chat_list["question"]},
             {"output": chat_list["answer"]},
@@ -64,6 +65,12 @@ st.markdown(
     """
 )
 
+with st.sidebar:
+    prompt_text = st.text_area(
+        "Prompt",
+        " -----------------------------------------------\nexplain previous sentences in detail in Korean.",
+    )
+
 send_message("I'm ready! Ask away!", "ai", save=False)
 paint_history()
 
@@ -75,7 +82,7 @@ if authentication_status:
         send_message(message, "human")
         with st.chat_message("ai"):
             ai_message = ""
-            for chunk in llm.stream(message):
+            for chunk in llm.stream(message + prompt_text):
                 chunk.content
-                ai_message += chunk.content
+                ai_message += "\n" + chunk.content
             save_messages(ai_message, "ai")
