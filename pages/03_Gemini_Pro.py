@@ -53,6 +53,16 @@ def paint_history():
     for message in st.session_state["gemini_messages"]:
         send_message(message["message"], message["role"], save=False)
 
+@st.spinner("Preparing your question...")
+def make_response(prompt_text, message):
+    ai_message = llm(
+        [
+        SystemMessage(content=prompt_text),
+        HumanMessage(content=message),
+        ]
+    )
+    return ai_message.content
+
 
 st.title("Gemini-Pro Chatbot")
 
@@ -68,7 +78,8 @@ st.markdown(
 with st.sidebar:
     prompt_text = st.text_area(
         "Prompt",
-        " -----------------------------------------------\nexplain previous sentences in detail in Korean.",
+        """Your task is to explain the sentences in the Human message in as much detail as possible to ensure Human understands it.
+        If the given sentence is in English, explain each sentence in Korean and provide examples if necessary""",
     )
 
 send_message("I'm ready! Ask away!", "ai", save=False)
@@ -81,8 +92,10 @@ if authentication_status:
     if message:
         send_message(message, "human")
         with st.chat_message("ai"):
-            ai_message = ""
-            for chunk in llm.stream(message + prompt_text):
-                chunk.content
-                ai_message += "\n" + chunk.content
+            # ai_message = ""
+            # for chunk in llm.stream(message + prompt_text):
+            #     chunk.content
+            #     ai_message += "\n" + chunk.content
+            ai_message = make_response(prompt_text, message)
+            st.write(ai_message)
             save_messages(ai_message, "ai")
