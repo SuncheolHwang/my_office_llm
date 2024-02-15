@@ -57,8 +57,8 @@ def paint_history():
 def make_response(prompt_text, message):
     ai_message = llm(
         [
-        SystemMessage(content=prompt_text),
-        HumanMessage(content=message),
+            SystemMessage(content=prompt_text),
+            HumanMessage(content=message),
         ]
     )
     return ai_message.content
