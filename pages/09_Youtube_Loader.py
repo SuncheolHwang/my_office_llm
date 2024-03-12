@@ -34,4 +34,7 @@ if url:
     
     docs = loader.load()
 
-    st.write(docs)
+    if docs:
+        with st.chat_message("ai"):
+            for doc in docs:
+                st.markdown(doc.page_content + "\n\n")
