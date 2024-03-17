@@ -1,7 +1,8 @@
 import streamlit as st
-from langchain.document_loaders import UnstructuredFileLoader
+from langchain.document_loaders.unstructured import UnstructuredFileLoader
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import CacheBackedEmbeddings, OllamaEmbeddings
+from langchain.embeddings.ollama import OllamaEmbeddings
+from langchain.embeddings.cache import CacheBackedEmbeddings
 from langchain.vectorstores.faiss import FAISS
 from langchain.storage import LocalFileStore
 from langchain.prompts import ChatPromptTemplate
@@ -82,14 +83,23 @@ def paint_history():
 def format_docs(docs):
     return "\n\n".join(document.page_content for document in docs)
 
+#Answer the question using ONLY the following context and not your training data. If you don't know the answer just say you don't know. DON'T make anything up.
 
 prompt = ChatPromptTemplate.from_template(
+    """         
+    Given the context, please provide a detailed and easy-to-understand explanation regarding the question. 
+    Ensure to:
+    1. Clarify the essence of the question, asking for additional details if necessary.
+    2. Offer background information relevant to the question to set the stage for your explanation.
+    3. Break down complex concepts or processes into manageable steps for clarity.
+    4. Use examples and analogies to elucidate difficult concepts, making them relatable to everyday experiences.
+    5. Summarize the main points and conclude your explanation, indicating areas for further exploration or where additional information might be beneficial.
+    
+    Aim to make your response comprehensive yet accessible, utilizing simple language to enhance understanding for all audience levels.
+
+    Context: {context}
+    Question: {question}
     """
-            Answer the question using ONLY the following context and not your training data. If you don't know the answer just say you don't know. DON'T make anything up.
-            
-            Context: {context}
-            Question: {question}
-            """
 )
 
 st.title("Document GPT")

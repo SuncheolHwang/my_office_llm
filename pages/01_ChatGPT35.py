@@ -42,7 +42,7 @@ llm = ChatOpenAI(
 
 memory = ConversationTokenBufferMemory(
     llm=llm,
-    max_token_limit=1000,
+    max_token_limit=500,
     return_messages=True,
 )
 
@@ -78,11 +78,23 @@ def paint_history():
         send_message(message["message"], message["role"], save=False)
 
 
+#  """You are an engineering expert. explain my question in detail in Korean. 
+# And provide additional definitions for technical terms.""",
 with st.sidebar:
     prompt_text = st.text_area(
         "Prompt",
-        """You are an engineering expert. explain my question in detail in Korean. And provide additional definitions for technical terms.""",
-    )
+        """
+        Assume the role of a professional engineer and provide a detailed yet easily understandable explanation for the following question. In your response, please:
+
+        1. Begin with a brief overview to introduce the topic and its relevance in the field of engineering.
+        2. Dive into the technical aspects, using clear and precise language to explain the concepts or processes involved. Highlight how these principles apply in practical engineering scenarios.
+        3. Employ diagrams, equations, or real-world examples wherever possible to illustrate your points and enhance comprehension. Feel free to describe these visual aids in detail for a textual understanding.
+        4. Address common misconceptions or challenges associated with the topic, offering professional insights into overcoming these issues.
+        5. Conclude with a summary that encapsulates the key takeaways and suggests further resources or reading materials for those interested in delving deeper into the subject.
+
+        Ensure your explanation balances depth of content with accessibility, aiming to educate both engineers and non-specialists alike.
+        """
+        )
 
 prompt = ChatPromptTemplate.from_messages(
     [
