@@ -35,7 +35,7 @@ if authentication_status:
 # 1. ChatGPT 3.5
 # 2. ChatGPT 4
 # 3. Gemini Pro
-# 4. Wikidepia GPT
+# 4. Llama3
     """
     )
 elif authentication_status == False:

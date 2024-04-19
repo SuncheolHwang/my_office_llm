@@ -1,20 +1,17 @@
 import streamlit as st
-from langchain.document_loaders import UnstructuredFileLoader
+from langchain.document_loaders.unstructured import UnstructuredFileLoader
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import CacheBackedEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.vectorstores.chroma import Chroma
+from langchain.embeddings.ollama import OllamaEmbeddings
+from langchain.embeddings.cache import CacheBackedEmbeddings
+from langchain.vectorstores.faiss import FAISS
 from langchain.storage import LocalFileStore
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.runnable import RunnablePassthrough, RunnableLambda
+from langchain.chat_models import ChatOllama
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain.embeddings import GPT4AllEmbeddings
-import os
-from langchain.llms.gpt4all import GPT4All
-from langchain.embeddings import OpenAIEmbeddings
 
 st.set_page_config(
-    page_title="GPT4All Chatbot with document",
+    page_title="Document GPT",
     page_icon="📃",
 )
 
@@ -32,28 +29,22 @@ class ChatCallbackHandler(BaseCallbackHandler):
         self.message += token
         self.message_box.markdown(self.message)
 
-n_gpu_layers = 40  # Change this value based on your model and your GPU VRAM pool.
-n_batch = 100  # Should be between 1 and n_ctx, consider the amount of VRAM in your GPU.
 
-llm = GPT4All(
-    model="./gpt4all-falcon-q4_0.gguf",
-    max_tokens=3000,
-    device="gpu",
-    top_p=1,
+llm = ChatOllama(
+    model="llama3:latest",
+    temperature=0.1,
     streaming=True,
     callbacks=[ChatCallbackHandler()],
-    verbose=True,  # Verbose is required to pass to the callback manager
-    use_mlock=False,
-    n_batch=n_batch,
 )
 
-@st.cache_resource(show_spinner="Embedding file...")
+
+@st.cache_data(show_spinner="Embedding file...")
 def embed_file(file):
     file_content = file.read()
-    file_path = f"./.cache/gpt4files/{file.name}"
+    file_path = f"./.cache/private_files/{file.name}"
     with open(file_path, "wb") as f:
         f.write(file_content)
-    cache_dir = LocalFileStore(f"./.cache/gpt4embeddings/{file.name}")
+    cache_dir = LocalFileStore(f"./.cache/private_embeddings/{file.name}")
     splitter = CharacterTextSplitter.from_tiktoken_encoder(
         separator="\n",
         chunk_size=600,
@@ -61,10 +52,9 @@ def embed_file(file):
     )
     loader = UnstructuredFileLoader(file_path)
     docs = loader.load_and_split(text_splitter=splitter)
-    embeddings = OpenAIEmbeddings()
-
+    embeddings = OllamaEmbeddings(model="llama3:latest")
     cached_embeddings = CacheBackedEmbeddings.from_bytes_store(embeddings, cache_dir)
-    vectorstore = Chroma.from_documents(docs, cached_embeddings)
+    vectorstore = FAISS.from_documents(docs, cached_embeddings)
     retriver = vectorstore.as_retriever()
     return retriver
 
@@ -93,22 +83,26 @@ def paint_history():
 def format_docs(docs):
     return "\n\n".join(document.page_content for document in docs)
 
+#Answer the question using ONLY the following context and not your training data. If you don't know the answer just say you don't know. DON'T make anything up.
 
-prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            """
-            Answer the question using the following context.
-            
-            Context: {context}
-            """,
-        ),
-        ("human", "{question}"),
-    ]
+prompt = ChatPromptTemplate.from_template(
+    """         
+    Given the context, please provide a detailed and easy-to-understand explanation regarding the question. 
+    Ensure to:
+    1. Clarify the essence of the question, asking for additional details if necessary.
+    2. Offer background information relevant to the question to set the stage for your explanation.
+    3. Break down complex concepts or processes into manageable steps for clarity.
+    4. Use examples and analogies to elucidate difficult concepts, making them relatable to everyday experiences.
+    5. Summarize the main points and conclude your explanation, indicating areas for further exploration or where additional information might be beneficial.
+    
+    Aim to make your response comprehensive yet accessible, utilizing simple language to enhance understanding for all audience levels.
+
+    Context: {context}
+    Question: {question}
+    """
 )
 
-st.title("GPT4All Chatbot with Document")
+st.title("Document GPT")
 
 st.markdown(
     """
