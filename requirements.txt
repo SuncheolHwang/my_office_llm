@@ -96,7 +96,7 @@ langchain-core==0.1.45
 langchain-google-genai==0.0.5
 langchain-groq==0.1.2
 langcodes==3.3.0
-langsmith==0.1.49
+langsmith==0.0.63
 layoutparser==0.3.4
 loguru==0.7.2
 lxml==4.9.3
@@ -126,7 +126,7 @@ onnxruntime==1.16.0
 openai==0.28.0
 opencv-python==4.8.0.76
 openpyxl==3.1.2
-orjson==3.10.1
+orjson==3.9.9
 overrides==7.4.0
 packaging==23.2
 pandas==2.1.0
