@@ -6,7 +6,7 @@ from langchain.memory import ConversationTokenBufferMemory
 from langchain.llms.huggingface_pipeline import HuggingFacePipeline
 
 st.set_page_config(
-    page_title="Gemma LLM",
+    page_title="Llama3 LLM",
     page_icon="📃",
 )
 
@@ -34,9 +34,9 @@ if "gemma_messages" not in st.session_state:
     st.session_state["gemma_messages"] = []
 
 llm = HuggingFacePipeline.from_model_id(
-    model_id="google/gemma-7b",
+    model_id="meta-llama/Meta-Llama-3-8B",
     task="text-generation",
-    pipeline_kwargs={"max_new_tokens": 10},
+    pipeline_kwargs={"max_new_tokens": 30},
 )
 
 memory = ConversationTokenBufferMemory(
@@ -45,11 +45,11 @@ memory = ConversationTokenBufferMemory(
     return_messages=True,
 )
 
-if "gpt3_chat_summary" not in st.session_state:
-    st.session_state["gpt3_chat_summary"] = []
+if "hugging_chat_summary" not in st.session_state:
+    st.session_state["hugging_chat_summary"] = []
 else:
     callback = False
-    for chat_list in st.session_state["gpt3_chat_summary"]:
+    for chat_list in st.session_state["hugging_chat_summary"]:
         memory.save_context(
             {"input": chat_list["question"]},
             {"output": chat_list["answer"]},
@@ -102,7 +102,7 @@ def load_memory(_):
 
 
 def save_context(question, result):
-    st.session_state["gpt3_chat_summary"].append(
+    st.session_state["hugging_chat_summary"].append(
         {
             "question": question,
             "answer": result,
@@ -117,7 +117,7 @@ def invoke_chain(question):
     save_context(message, result.content)
 
 
-st.title("ChatGPT3.5 Chatbot")
+st.title("Llama3 Chatbot")
 
 st.markdown(
     """
